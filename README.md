@@ -37,15 +37,15 @@ This add-on runs the official Twingate connector as a service alongside Home Ass
 
 ### Required Settings
 
-1. **Network**: Your Twingate tenant name (e.g., `philbytech`)
+1. **Network**: Your Twingate tenant name (e.g., `your-tenant`)
 2. **Access Token**: Your Twingate access token
 3. **Refresh Token**: Your Twingate refresh token
 
 ### Optional Settings
 
-- **Container Name**: Name for the container (default: `twingate-hass-addon`)
+- **Container Name**: Name for the container (default: `connector-name`)
 - **Network Mode**: Choose network mode (host, bridge, none)
-- **Log Level**: Logging level (0-4, default: 3)
+- **Log Level**: Logging level (minimal, basic, normal, detailed, debug)
 - **Log Analytics**: Analytics logging (default: v2)
 
 ### Getting Twingate Credentials
@@ -54,7 +54,7 @@ This add-on runs the official Twingate connector as a service alongside Home Ass
 2. Navigate to **Settings** → **Connectors**
 3. Click **Create Connector** or select an existing one
 4. Copy the following information:
-   - **Tenant Name** (e.g., `philbytech` from https://philbytech.twingate.com)
+   - **Tenant Name** (e.g., `your-tenant` from https://your-tenant.twingate.com)
    - **Access Token**
    - **Refresh Token**
 

@@ -11,17 +11,16 @@ arch:
   - i386
 startup: application
 init: false
-ports:
-  80/tcp: null
+host_network: true
 map:
   - config:rw
 options:
   network: ""
   access_token: ""
   refresh_token: ""
-  container_name: "twingate-hass-addon"
+  container_name: "connector-name"
   network_mode: "host"
-  log_level: 3
+  log_level: "detailed"
   log_analytics: "v2"
 schema:
   network: str
@@ -29,5 +28,5 @@ schema:
   refresh_token: str
   container_name: str
   network_mode: list(host|bridge|none)
-  log_level: int
+  log_level: list(minimal|basic|normal|detailed|debug)
   log_analytics: str

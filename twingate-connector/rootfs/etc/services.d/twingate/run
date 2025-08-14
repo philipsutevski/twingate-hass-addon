@@ -1,0 +1,59 @@
+#!/usr/bin/with-contenv bashio
+
+# Twingate Connector s6 service
+set -euo pipefail
+
+NETWORK="$(bashio::config 'network')"
+ACCESS_TOKEN="$(bashio::config 'access_token')"
+REFRESH_TOKEN="$(bashio::config 'refresh_token')"
+HOST_LABEL="$(bashio::config 'container_name')"
+LOG_LEVEL_OPT="$(bashio::config 'log_level')"
+LOG_ANALYTICS="$(bashio::config 'log_analytics')"
+
+if [[ -z "${NETWORK}" || -z "${ACCESS_TOKEN}" || -z "${REFRESH_TOKEN}" ]]; then
+  bashio::log.fatal "Missing required configuration: network/access_token/refresh_token"
+  exit 1
+fi
+
+case "${LOG_LEVEL_OPT}" in
+  minimal)   TWINGATE_LOG_LEVEL=0 ;;
+  basic)     TWINGATE_LOG_LEVEL=1 ;;
+  normal)    TWINGATE_LOG_LEVEL=2 ;;
+  detailed)  TWINGATE_LOG_LEVEL=3 ;;
+  debug)     TWINGATE_LOG_LEVEL=4 ;;
+  *)         TWINGATE_LOG_LEVEL=3 ;;
+esac
+
+export TWINGATE_ACCESS_TOKEN="${ACCESS_TOKEN}"
+export TWINGATE_REFRESH_TOKEN="${REFRESH_TOKEN}"
+export TWINGATE_LABEL_HOSTNAME="${HOST_LABEL}"
+export TWINGATE_LABEL_DEPLOYED_BY="hassio-addon"
+export TWINGATE_LOG_LEVEL="${TWINGATE_LOG_LEVEL}"
+export TWINGATE_LOG_ANALYTICS="${LOG_ANALYTICS}"
+
+# Disable systemd features since we're running in a container
+export SYSTEMD_IGNORE_CHROOT=1
+export NOTIFY_SOCKET=""
+
+bashio::log.info "Starting Twingate connector for network '${NETWORK}'"
+
+# Debug: Check if binary exists and its dependencies
+bashio::log.info "Checking for Twingate connector binary..."
+ls -la /usr/local/bin/ || bashio::log.warning "Cannot list /usr/local/bin"
+
+# Check binary dependencies
+bashio::log.info "Checking binary dependencies..."
+ldd /usr/local/bin/connectord || bashio::log.warning "ldd failed or binary is statically linked"
+
+# Try different paths
+if [[ -x "/usr/local/bin/connectord" ]]; then
+  bashio::log.info "Found binary at /usr/local/bin/connectord"
+  exec /usr/local/bin/connectord --controller-network "${NETWORK}"
+elif [[ -x "/connectord" ]]; then
+  bashio::log.info "Found binary at /connectord"
+  exec /connectord --controller-network "${NETWORK}"
+else
+  bashio::log.fatal "Twingate connector binary not found!"
+  exit 1
+fi
+
