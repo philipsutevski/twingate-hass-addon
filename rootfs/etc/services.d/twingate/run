@@ -1,0 +1,63 @@
+#!/usr/bin/with-contenv bashio
+
+# ==============================================================================
+# Run Twingate Connector
+# ==============================================================================
+
+bashio::log.info "Starting Twingate Connector service..."
+
+# Get configuration
+NETWORK=$(bashio::config 'network')
+CONTAINER_NAME=$(bashio::config 'container_name')
+NETWORK_MODE=$(bashio::config 'network_mode')
+
+# Stop any existing container
+if docker ps -q -f name="${CONTAINER_NAME}" | grep -q .; then
+    bashio::log.info "Stopping existing Twingate container..."
+    docker stop "${CONTAINER_NAME}" || true
+    docker rm "${CONTAINER_NAME}" || true
+fi
+
+# Remove any existing container
+if docker ps -aq -f name="${CONTAINER_NAME}" | grep -q .; then
+    bashio::log.info "Removing existing Twingate container..."
+    docker rm "${CONTAINER_NAME}" || true
+fi
+
+# Pull latest image
+bashio::log.info "Pulling latest Twingate connector image..."
+docker pull twingate/connector:1
+
+# Start the Twingate connector
+bashio::log.info "Starting Twingate connector container..."
+
+# Build docker run command based on network mode
+if [ "${NETWORK_MODE}" = "host" ]; then
+    docker run -d \
+        --name "${CONTAINER_NAME}" \
+        --restart unless-stopped \
+        --network host \
+        --sysctl net.ipv4.ping_group_range="0 2147483647" \
+        --env-file /tmp/twingate.env \
+        twingate/connector:1
+else
+    docker run -d \
+        --name "${CONTAINER_NAME}" \
+        --restart unless-stopped \
+        --network "${NETWORK_MODE}" \
+        --sysctl net.ipv4.ping_group_range="0 2147483647" \
+        --env-file /tmp/twingate.env \
+        twingate/connector:1
+fi
+
+# Check if container started successfully
+if docker ps -q -f name="${CONTAINER_NAME}" | grep -q .; then
+    bashio::log.info "Twingate connector started successfully"
+    
+    # Follow logs
+    bashio::log.info "Following Twingate connector logs..."
+    docker logs -f "${CONTAINER_NAME}"
+else
+    bashio::log.error "Failed to start Twingate connector"
+    exit 1
+fi

@@ -1,0 +1,33 @@
+---
+name: "Twingate Connector"
+version: "1.0.0"
+slug: "twingate-connector"
+description: "Twingate connector for secure network access"
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+startup: application
+init: false
+ports:
+  80/tcp: null
+map:
+  - config:rw
+options:
+  network: ""
+  access_token: ""
+  refresh_token: ""
+  container_name: "twingate-hass-addon"
+  network_mode: "host"
+  log_level: 3
+  log_analytics: "v2"
+schema:
+  network: str
+  access_token: str
+  refresh_token: str
+  container_name: str
+  network_mode: list(host|bridge|none)
+  log_level: int
+  log_analytics: str
